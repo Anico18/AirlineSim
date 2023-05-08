@@ -7,6 +7,7 @@ using SimAirline.Request;
 using System.Collections.Generic;
 using System.Collections;
 
+
 namespace SimAirline.Controllers
 {
     [Route("api/[controller]")]
@@ -29,6 +30,9 @@ namespace SimAirline.Controllers
             var iterationFc = 0;
             var iterationPe = 0;
             var iterationE = 0;
+            var emergencyiterationFc = 0;
+            var emergencyiterationPe = 0;
+            var emergencyiterationE = 0;
 
             var queryboarding = await _context.BoardingPasses
                 .Include(m => m.Passenger)
@@ -44,28 +48,39 @@ namespace SimAirline.Controllers
             if (flightData != null)
             {
                 var firstClass = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatTypeId == 1).ToListAsync();
+                var emergencyFc = firstClass.OrderByDescending(m => m.SeatId).ToList();
 
                 var premiumEconomy = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatTypeId == 2).ToListAsync();
+                var emergencyPe = premiumEconomy.OrderByDescending(m => m.SeatId).ToList();
 
-                var firstEconomySeat = await _context.Seats.FirstOrDefaultAsync(m => m.SeatTypeId == 3);
+                var firstEconomySeat = await _context.Seats.FirstOrDefaultAsync(m => m.SeatTypeId == 3 && m.AirplaneId == flightData.AirplaneId);
 
                 if(firstEconomySeat != null)
                 {
+                    var seatcolumns = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId).Select(m => m.SeatColumn).Distinct().ToListAsync();
+                    
+                    foreach(var seatColumn in seatcolumns)
+                    {
+                        var economyCol = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == seatColumn && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                        economyClass.AddRange(economyCol);
+                    }
 
+                    //var economyG = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "G" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                    //var economyF = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "F" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                    //var economyE = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "E" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                    //var economyC = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "C" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                    //var economyB = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "B" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                    //var economyA = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "A" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
 
-                    var economyG = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "G" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    var economyF = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "F" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    var economyE = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "E" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    var economyC = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "C" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    var economyB = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "B" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    var economyA = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "A" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
+                    //economyClass.AddRange(economyG);
+                    //economyClass.AddRange(economyF);
+                    //economyClass.AddRange(economyE);
+                    //economyClass.AddRange(economyC);
+                    //economyClass.AddRange(economyB);
+                    //economyClass.AddRange(economyA);
 
-                    economyClass.AddRange(economyG);
-                    economyClass.AddRange(economyF);
-                    economyClass.AddRange(economyE);
-                    economyClass.AddRange(economyC);
-                    economyClass.AddRange(economyB);
-                    economyClass.AddRange(economyA);
+                    var emergencyE = economyClass.OrderByDescending(m => m.SeatId).ToList();
+                    
 
                     List<int> processedBoardingPasses = new List<int>();
 
@@ -84,144 +99,391 @@ namespace SimAirline.Controllers
                             {
                                 foreach (var item in queryboarding)
                                 {
-                                    if (item.Purchase != null)
+                                    if(item.SeatId != null)
                                     {
-                                        if (item.Purchase.BoardingPasses.Count == 1)
+                                        if (item.Purchase != null)
                                         {
-                                            if (processedBoardingPasses.Contains(item.BoardingPassId))
+                                            if (item.Purchase.BoardingPasses.Count == 1)
                                             {
-                                            }
-                                            else
-                                            {
-                                                if (item.Passenger != null)
-                                                {
-                                                    if (item.SeatTypeId == 1)
-                                                    {
-                                                        item.SeatId = firstClass[iterationFc].SeatId;
-
-                                                        ResponsePassenger responsePassenger = new ResponsePassenger();
-                                                        responsePassenger.passengerId = item.Passenger.PassengerId;
-                                                        responsePassenger.dni = item.Passenger.Dni ?? "";
-                                                        responsePassenger.name = item.Passenger.Name ?? "";
-                                                        responsePassenger.age = item.Passenger.Age;
-                                                        responsePassenger.country = item.Passenger.Country ?? "";
-                                                        responsePassenger.boardingPassId = item.BoardingPassId;
-                                                        responsePassenger.purchaseId = item.PurchaseId;
-                                                        responsePassenger.seatTypeId = item.SeatTypeId;
-                                                        responsePassenger.seatId = item.SeatId;
-
-                                                        responseData.passengers.Add(responsePassenger);
-                                                        processedBoardingPasses.Add(item.BoardingPassId);
-                                                        iterationFc++;
-                                                    }
-                                                    else if (item.SeatTypeId == 2)
-                                                    {
-                                                        item.SeatId = premiumEconomy[iterationPe].SeatId;
-
-                                                        ResponsePassenger responsePassenger = new ResponsePassenger();
-                                                        responsePassenger.passengerId = item.Passenger.PassengerId;
-                                                        responsePassenger.dni = item.Passenger.Dni ?? "";
-                                                        responsePassenger.name = item.Passenger.Name ?? "";
-                                                        responsePassenger.age = item.Passenger.Age;
-                                                        responsePassenger.country = item.Passenger.Country ?? "";
-                                                        responsePassenger.boardingPassId = item.BoardingPassId;
-                                                        responsePassenger.purchaseId = item.PurchaseId;
-                                                        responsePassenger.seatTypeId = item.SeatTypeId;
-                                                        responsePassenger.seatId = item.SeatId;
-
-                                                        responseData.passengers.Add(responsePassenger);
-                                                        processedBoardingPasses.Add(item.BoardingPassId);
-                                                        iterationPe++;
-                                                    }
-                                                    else
-                                                    {
-                                                        item.SeatId = economyClass[iterationE].SeatId;
-
-                                                        ResponsePassenger responsePassenger = new ResponsePassenger();
-                                                        responsePassenger.passengerId = item.Passenger.PassengerId;
-                                                        responsePassenger.dni = item.Passenger.Dni ?? "";
-                                                        responsePassenger.name = item.Passenger.Name ?? "";
-                                                        responsePassenger.age = item.Passenger.Age;
-                                                        responsePassenger.country = item.Passenger.Country ?? "";
-                                                        responsePassenger.boardingPassId = item.BoardingPassId;
-                                                        responsePassenger.purchaseId = item.PurchaseId;
-                                                        responsePassenger.seatTypeId = item.SeatTypeId;
-                                                        responsePassenger.seatId = item.SeatId;
-
-                                                        responseData.passengers.Add(responsePassenger);
-                                                        processedBoardingPasses.Add(item.BoardingPassId);
-                                                        iterationE++;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            foreach (var obj in item.Purchase.BoardingPasses)
-                                            {
-                                                if (processedBoardingPasses.Contains(obj.BoardingPassId))
+                                                if (processedBoardingPasses.Contains(item.BoardingPassId))
                                                 {
                                                 }
                                                 else
                                                 {
                                                     if (item.Passenger != null)
                                                     {
-                                                        if (obj.SeatTypeId == 1)
+                                                        if (item.SeatTypeId == 1)
                                                         {
-                                                            obj.SeatId = firstClass[iterationFc].SeatId;
+                                                            item.SeatId = item.SeatId;
+
+                                                            if (item.SeatId == null)
+                                                            {
+                                                                item.SeatId = emergencyFc[emergencyiterationFc].SeatId;
+                                                                emergencyiterationFc++;
+                                                            }
 
                                                             ResponsePassenger responsePassenger = new ResponsePassenger();
-                                                            responsePassenger.passengerId = obj.Passenger.PassengerId;
-                                                            responsePassenger.dni = obj.Passenger.Dni ?? "";
-                                                            responsePassenger.name = obj.Passenger.Name ?? "";
-                                                            responsePassenger.age = obj.Passenger.Age;
-                                                            responsePassenger.country = obj.Passenger.Country ?? "";
-                                                            responsePassenger.boardingPassId = obj.BoardingPassId;
-                                                            responsePassenger.purchaseId = obj.PurchaseId;
-                                                            responsePassenger.seatTypeId = obj.SeatTypeId;
-                                                            responsePassenger.seatId = obj.SeatId;
+                                                            responsePassenger.passengerId = item.Passenger.PassengerId;
+                                                            responsePassenger.dni = item.Passenger.Dni ?? "";
+                                                            responsePassenger.name = item.Passenger.Name ?? "";
+                                                            responsePassenger.age = item.Passenger.Age;
+                                                            responsePassenger.country = item.Passenger.Country ?? "";
+                                                            responsePassenger.boardingPassId = item.BoardingPassId;
+                                                            responsePassenger.purchaseId = item.PurchaseId;
+                                                            responsePassenger.seatTypeId = item.SeatTypeId;
+                                                            responsePassenger.seatId = item.SeatId;
 
                                                             responseData.passengers.Add(responsePassenger);
-                                                            processedBoardingPasses.Add(obj.BoardingPassId);
+                                                            processedBoardingPasses.Add(item.BoardingPassId);
+                                                            Seat seatToRemoveFc = firstClass.FirstOrDefault(m => m.SeatId == item.SeatId);
+                                                            if (seatToRemoveFc != null)
+                                                            {
+                                                                firstClass.Remove(seatToRemoveFc);
+                                                            }
+                                                        }
+                                                        else if (item.SeatTypeId == 2)
+                                                        {
+                                                            item.SeatId = item.SeatId;
+
+                                                            if (item.SeatId == null)
+                                                            {
+                                                                item.SeatId = emergencyPe[emergencyiterationPe].SeatId;
+                                                                emergencyiterationPe++;
+                                                            }
+
+                                                            ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                            responsePassenger.passengerId = item.Passenger.PassengerId;
+                                                            responsePassenger.dni = item.Passenger.Dni ?? "";
+                                                            responsePassenger.name = item.Passenger.Name ?? "";
+                                                            responsePassenger.age = item.Passenger.Age;
+                                                            responsePassenger.country = item.Passenger.Country ?? "";
+                                                            responsePassenger.boardingPassId = item.BoardingPassId;
+                                                            responsePassenger.purchaseId = item.PurchaseId;
+                                                            responsePassenger.seatTypeId = item.SeatTypeId;
+                                                            responsePassenger.seatId = item.SeatId;
+
+                                                            responseData.passengers.Add(responsePassenger);
+                                                            processedBoardingPasses.Add(item.BoardingPassId);
+                                                            Seat seatToRemovePe = premiumEconomy.FirstOrDefault(m => m.SeatId == item.SeatId);
+                                                            if (seatToRemovePe != null)
+                                                            {
+                                                                premiumEconomy.Remove(seatToRemovePe);
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            item.SeatId = item.SeatId;
+
+                                                            if (item.SeatId == null)
+                                                            {
+                                                                item.SeatId = emergencyE[emergencyiterationE].SeatId;
+                                                                emergencyiterationE++;
+                                                            }
+
+                                                            ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                            responsePassenger.passengerId = item.Passenger.PassengerId;
+                                                            responsePassenger.dni = item.Passenger.Dni ?? "";
+                                                            responsePassenger.name = item.Passenger.Name ?? "";
+                                                            responsePassenger.age = item.Passenger.Age;
+                                                            responsePassenger.country = item.Passenger.Country ?? "";
+                                                            responsePassenger.boardingPassId = item.BoardingPassId;
+                                                            responsePassenger.purchaseId = item.PurchaseId;
+                                                            responsePassenger.seatTypeId = item.SeatTypeId;
+                                                            responsePassenger.seatId = item.SeatId;
+
+                                                            responseData.passengers.Add(responsePassenger);
+                                                            processedBoardingPasses.Add(item.BoardingPassId);
+                                                            Seat seatToRemoveE = economyClass.FirstOrDefault(m => m.SeatId == item.SeatId);
+                                                            if (seatToRemoveE != null)
+                                                            {
+                                                                economyClass.Remove(seatToRemoveE);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                foreach (var obj in item.Purchase.BoardingPasses)
+                                                {
+                                                    if (processedBoardingPasses.Contains(obj.BoardingPassId))
+                                                    {
+                                                    }
+                                                    else
+                                                    {
+                                                        if (item.Passenger != null)
+                                                        {   
+                                                            if (obj.SeatTypeId == 1)
+                                                            {
+                                                                obj.SeatId = obj.SeatId;
+
+                                                                if (obj.SeatId == null)
+                                                                {
+                                                                    obj.SeatId = emergencyFc[emergencyiterationFc].SeatId;
+                                                                    emergencyiterationFc++;
+                                                                }
+
+                                                                ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                                responsePassenger.passengerId = obj.Passenger.PassengerId;
+                                                                responsePassenger.dni = obj.Passenger.Dni ?? "";
+                                                                responsePassenger.name = obj.Passenger.Name ?? "";
+                                                                responsePassenger.age = obj.Passenger.Age;
+                                                                responsePassenger.country = obj.Passenger.Country ?? "";
+                                                                responsePassenger.boardingPassId = obj.BoardingPassId;
+                                                                responsePassenger.purchaseId = obj.PurchaseId;
+                                                                responsePassenger.seatTypeId = obj.SeatTypeId;
+                                                                responsePassenger.seatId = obj.SeatId;
+
+                                                                responseData.passengers.Add(responsePassenger);
+                                                                processedBoardingPasses.Add(obj.BoardingPassId);
+                                                                Seat seatToRemoveFc = firstClass.FirstOrDefault(m => m.SeatId == obj.SeatId);
+                                                                if (seatToRemoveFc != null)
+                                                                {
+                                                                    firstClass.Remove(seatToRemoveFc);
+                                                                }
+                                                            }
+                                                            else if (obj.SeatTypeId == 2)
+                                                            {
+                                                                obj.SeatId = obj.SeatId;
+
+                                                                if (obj.SeatId == null)
+                                                                {
+                                                                    obj.SeatId = emergencyPe[emergencyiterationPe].SeatId;
+                                                                    emergencyiterationPe++;
+                                                                }
+
+                                                                ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                                responsePassenger.passengerId = obj.Passenger.PassengerId;
+                                                                responsePassenger.dni = obj.Passenger.Dni ?? "";
+                                                                responsePassenger.name = obj.Passenger.Name ?? "";
+                                                                responsePassenger.age = obj.Passenger.Age;
+                                                                responsePassenger.country = obj.Passenger.Country ?? "";
+                                                                responsePassenger.boardingPassId = obj.BoardingPassId;
+                                                                responsePassenger.purchaseId = obj.PurchaseId;
+                                                                responsePassenger.seatTypeId = obj.SeatTypeId;
+                                                                responsePassenger.seatId = obj.SeatId;
+
+                                                                responseData.passengers.Add(responsePassenger);
+                                                                processedBoardingPasses.Add(obj.BoardingPassId);
+                                                                Seat seatToRemovePe = premiumEconomy.FirstOrDefault(m => m.SeatId == obj.SeatId);
+                                                                if (seatToRemovePe != null)
+                                                                {
+                                                                    premiumEconomy.Remove(seatToRemovePe);
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                obj.SeatId = obj.SeatId;
+
+                                                                if (obj.SeatId == null)
+                                                                {
+                                                                    obj.SeatId = emergencyE[emergencyiterationE].SeatId;
+                                                                    emergencyiterationE++;
+                                                                }
+
+                                                                ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                                responsePassenger.passengerId = obj.Passenger.PassengerId;
+                                                                responsePassenger.dni = obj.Passenger.Dni ?? "";
+                                                                responsePassenger.name = obj.Passenger.Name ?? "";
+                                                                responsePassenger.age = obj.Passenger.Age;
+                                                                responsePassenger.country = obj.Passenger.Country ?? "";
+                                                                responsePassenger.boardingPassId = obj.BoardingPassId;
+                                                                responsePassenger.purchaseId = obj.PurchaseId;
+                                                                responsePassenger.seatTypeId = obj.SeatTypeId;
+                                                                responsePassenger.seatId = obj.SeatId;
+
+                                                                responseData.passengers.Add(responsePassenger);
+                                                                processedBoardingPasses.Add(obj.BoardingPassId);
+                                                                Seat seatToRemoveE = economyClass.FirstOrDefault(m => m.SeatId == obj.SeatId);
+                                                                if (seatToRemoveE != null)
+                                                                {
+                                                                    economyClass.Remove(seatToRemoveE);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        if (item.Purchase != null)
+                                        {
+                                            if (item.Purchase.BoardingPasses.Count == 1)
+                                            {
+                                                if (processedBoardingPasses.Contains(item.BoardingPassId))
+                                                {
+                                                }
+                                                else
+                                                {
+                                                    if (item.Passenger != null)
+                                                    {
+                                                        if (item.SeatTypeId == 1)
+                                                        {
+                                                            item.SeatId = firstClass[iterationFc].SeatId;
+
+                                                            if(item.SeatId == null)
+                                                            {
+                                                                item.SeatId = emergencyFc[emergencyiterationFc].SeatId;
+                                                                emergencyiterationFc++;
+                                                            }
+
+                                                            ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                            responsePassenger.passengerId = item.Passenger.PassengerId;
+                                                            responsePassenger.dni = item.Passenger.Dni ?? "";
+                                                            responsePassenger.name = item.Passenger.Name ?? "";
+                                                            responsePassenger.age = item.Passenger.Age;
+                                                            responsePassenger.country = item.Passenger.Country ?? "";
+                                                            responsePassenger.boardingPassId = item.BoardingPassId;
+                                                            responsePassenger.purchaseId = item.PurchaseId;
+                                                            responsePassenger.seatTypeId = item.SeatTypeId;
+                                                            responsePassenger.seatId = item.SeatId;
+
+                                                            responseData.passengers.Add(responsePassenger);
+                                                            processedBoardingPasses.Add(item.BoardingPassId);
                                                             iterationFc++;
                                                         }
-                                                        else if (obj.SeatTypeId == 2)
+                                                        else if (item.SeatTypeId == 2)
                                                         {
-                                                            obj.SeatId = premiumEconomy[iterationPe].SeatId;
+                                                            item.SeatId = premiumEconomy[iterationPe].SeatId;
+
+                                                            if (item.SeatId == null)
+                                                            {
+                                                                item.SeatId = emergencyPe[emergencyiterationPe].SeatId;
+                                                                emergencyiterationPe++;
+                                                            }
 
                                                             ResponsePassenger responsePassenger = new ResponsePassenger();
-                                                            responsePassenger.passengerId = obj.Passenger.PassengerId;
-                                                            responsePassenger.dni = obj.Passenger.Dni ?? "";
-                                                            responsePassenger.name = obj.Passenger.Name ?? "";
-                                                            responsePassenger.age = obj.Passenger.Age;
-                                                            responsePassenger.country = obj.Passenger.Country ?? "";
-                                                            responsePassenger.boardingPassId = obj.BoardingPassId;
-                                                            responsePassenger.purchaseId = obj.PurchaseId;
-                                                            responsePassenger.seatTypeId = obj.SeatTypeId;
-                                                            responsePassenger.seatId = obj.SeatId;
+                                                            responsePassenger.passengerId = item.Passenger.PassengerId;
+                                                            responsePassenger.dni = item.Passenger.Dni ?? "";
+                                                            responsePassenger.name = item.Passenger.Name ?? "";
+                                                            responsePassenger.age = item.Passenger.Age;
+                                                            responsePassenger.country = item.Passenger.Country ?? "";
+                                                            responsePassenger.boardingPassId = item.BoardingPassId;
+                                                            responsePassenger.purchaseId = item.PurchaseId;
+                                                            responsePassenger.seatTypeId = item.SeatTypeId;
+                                                            responsePassenger.seatId = item.SeatId;
 
                                                             responseData.passengers.Add(responsePassenger);
-                                                            processedBoardingPasses.Add(obj.BoardingPassId);
+                                                            processedBoardingPasses.Add(item.BoardingPassId);
                                                             iterationPe++;
                                                         }
                                                         else
                                                         {
-                                                            obj.SeatId = economyClass[iterationE].SeatId;
+                                                            item.SeatId = economyClass[iterationE].SeatId;
+
+                                                            if (item.SeatId == null)
+                                                            {
+                                                                item.SeatId = emergencyE[emergencyiterationE].SeatId;
+                                                                emergencyiterationE++;
+                                                            }
 
                                                             ResponsePassenger responsePassenger = new ResponsePassenger();
-                                                            responsePassenger.passengerId = obj.Passenger.PassengerId;
-                                                            responsePassenger.dni = obj.Passenger.Dni ?? "";
-                                                            responsePassenger.name = obj.Passenger.Name ?? "";
-                                                            responsePassenger.age = obj.Passenger.Age;
-                                                            responsePassenger.country = obj.Passenger.Country ?? "";
-                                                            responsePassenger.boardingPassId = obj.BoardingPassId;
-                                                            responsePassenger.purchaseId = obj.PurchaseId;
-                                                            responsePassenger.seatTypeId = obj.SeatTypeId;
-                                                            responsePassenger.seatId = obj.SeatId;
+                                                            responsePassenger.passengerId = item.Passenger.PassengerId;
+                                                            responsePassenger.dni = item.Passenger.Dni ?? "";
+                                                            responsePassenger.name = item.Passenger.Name ?? "";
+                                                            responsePassenger.age = item.Passenger.Age;
+                                                            responsePassenger.country = item.Passenger.Country ?? "";
+                                                            responsePassenger.boardingPassId = item.BoardingPassId;
+                                                            responsePassenger.purchaseId = item.PurchaseId;
+                                                            responsePassenger.seatTypeId = item.SeatTypeId;
+                                                            responsePassenger.seatId = item.SeatId;
 
                                                             responseData.passengers.Add(responsePassenger);
-                                                            processedBoardingPasses.Add(obj.BoardingPassId);
+                                                            processedBoardingPasses.Add(item.BoardingPassId);
                                                             iterationE++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                foreach (var obj in item.Purchase.BoardingPasses)
+                                                {
+                                                    if (processedBoardingPasses.Contains(obj.BoardingPassId))
+                                                    {
+                                                    }
+                                                    else
+                                                    {
+                                                        if (item.Passenger != null)
+                                                        {
+                                                            if (obj.SeatTypeId == 1)
+                                                            {
+                                                                obj.SeatId = firstClass[iterationFc].SeatId;
+                                                                
+                                                                if (obj.SeatId == null)
+                                                                {
+                                                                    obj.SeatId = emergencyFc[emergencyiterationFc].SeatId;
+                                                                    emergencyiterationFc++;
+                                                                }
+
+                                                                ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                                responsePassenger.passengerId = obj.Passenger.PassengerId;
+                                                                responsePassenger.dni = obj.Passenger.Dni ?? "";
+                                                                responsePassenger.name = obj.Passenger.Name ?? "";
+                                                                responsePassenger.age = obj.Passenger.Age;
+                                                                responsePassenger.country = obj.Passenger.Country ?? "";
+                                                                responsePassenger.boardingPassId = obj.BoardingPassId;
+                                                                responsePassenger.purchaseId = obj.PurchaseId;
+                                                                responsePassenger.seatTypeId = obj.SeatTypeId;
+                                                                responsePassenger.seatId = obj.SeatId;
+
+                                                                responseData.passengers.Add(responsePassenger);
+                                                                processedBoardingPasses.Add(obj.BoardingPassId);
+                                                                iterationFc++;
+                                                            }
+                                                            else if (obj.SeatTypeId == 2)
+                                                            {
+                                                                obj.SeatId = premiumEconomy[iterationPe].SeatId;
+
+                                                                if (obj.SeatId == null)
+                                                                {
+                                                                    obj.SeatId = emergencyPe[emergencyiterationPe].SeatId;
+                                                                    emergencyiterationPe++;
+                                                                }
+
+                                                                ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                                responsePassenger.passengerId = obj.Passenger.PassengerId;
+                                                                responsePassenger.dni = obj.Passenger.Dni ?? "";
+                                                                responsePassenger.name = obj.Passenger.Name ?? "";
+                                                                responsePassenger.age = obj.Passenger.Age;
+                                                                responsePassenger.country = obj.Passenger.Country ?? "";
+                                                                responsePassenger.boardingPassId = obj.BoardingPassId;
+                                                                responsePassenger.purchaseId = obj.PurchaseId;
+                                                                responsePassenger.seatTypeId = obj.SeatTypeId;
+                                                                responsePassenger.seatId = obj.SeatId;
+
+                                                                responseData.passengers.Add(responsePassenger);
+                                                                processedBoardingPasses.Add(obj.BoardingPassId);
+                                                                iterationPe++;
+                                                            }
+                                                            else
+                                                            {
+                                                                obj.SeatId = economyClass[iterationE].SeatId;
+
+                                                                if (obj.SeatId == null)
+                                                                {
+                                                                    obj.SeatId = emergencyE[emergencyiterationE].SeatId;
+                                                                    emergencyiterationE++;
+                                                                }
+
+                                                                ResponsePassenger responsePassenger = new ResponsePassenger();
+                                                                responsePassenger.passengerId = obj.Passenger.PassengerId;
+                                                                responsePassenger.dni = obj.Passenger.Dni ?? "";
+                                                                responsePassenger.name = obj.Passenger.Name ?? "";
+                                                                responsePassenger.age = obj.Passenger.Age;
+                                                                responsePassenger.country = obj.Passenger.Country ?? "";
+                                                                responsePassenger.boardingPassId = obj.BoardingPassId;
+                                                                responsePassenger.purchaseId = obj.PurchaseId;
+                                                                responsePassenger.seatTypeId = obj.SeatTypeId;
+                                                                responsePassenger.seatId = obj.SeatId;
+
+                                                                responseData.passengers.Add(responsePassenger);
+                                                                processedBoardingPasses.Add(obj.BoardingPassId);
+                                                                iterationE++;
+                                                            }
                                                         }
                                                     }
                                                 }
