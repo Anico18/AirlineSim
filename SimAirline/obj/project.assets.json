@@ -1877,19 +1877,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\DELL\\.nuget\\packages\\": {}
+    "C:\\Users\\AgileX-4\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\DELL\\Documents\\GitHub\\AirlineSim\\SimAirplane\\AirlineSim\\SimAirline\\SimAirline.csproj",
+      "projectUniqueName": "C:\\Users\\AgileX-4\\Documents\\GitHub\\Cato\\AirlineSim\\SimAirline\\SimAirline.csproj",
       "projectName": "SimAirline",
-      "projectPath": "D:\\DELL\\Documents\\GitHub\\AirlineSim\\SimAirplane\\AirlineSim\\SimAirline\\SimAirline.csproj",
-      "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-      "outputPath": "D:\\DELL\\Documents\\GitHub\\AirlineSim\\SimAirplane\\AirlineSim\\SimAirline\\obj\\",
+      "projectPath": "C:\\Users\\AgileX-4\\Documents\\GitHub\\Cato\\AirlineSim\\SimAirline\\SimAirline.csproj",
+      "packagesPath": "C:\\Users\\AgileX-4\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\AgileX-4\\Documents\\GitHub\\Cato\\AirlineSim\\SimAirline\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\AgileX-4\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
