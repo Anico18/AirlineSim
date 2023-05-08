@@ -65,22 +65,7 @@ namespace SimAirline.Controllers
                         economyClass.AddRange(economyCol);
                     }
 
-                    //var economyG = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "G" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    //var economyF = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "F" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    //var economyE = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "E" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    //var economyC = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "C" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    //var economyB = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "B" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-                    //var economyA = await _context.Seats.Where(m => m.AirplaneId == flightData.AirplaneId && m.SeatColumn == "A" && m.SeatRow >= firstEconomySeat.SeatRow).ToListAsync();
-
-                    //economyClass.AddRange(economyG);
-                    //economyClass.AddRange(economyF);
-                    //economyClass.AddRange(economyE);
-                    //economyClass.AddRange(economyC);
-                    //economyClass.AddRange(economyB);
-                    //economyClass.AddRange(economyA);
-
                     var emergencyE = economyClass.OrderByDescending(m => m.SeatId).ToList();
-                    
 
                     List<int> processedBoardingPasses = new List<int>();
 
