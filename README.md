@@ -267,5 +267,57 @@ De esta manera, se ha convertido satisfactoriamente los nombres de Snake Case a 
   grupo. Asimismo, se manejan los nulos asignando asientos de la parte de atrás de cada una de las cabinas de cada clase, permitiendo que no exista pasajeros
   con `SeatId` con valor `null`.  
   
+  COMO EJECUTAR EL API.
+  
+  Existen dos maneras de ejecutar el API. La primera, de manera local, se hace con los siguientes pasos:
+  
+  1. Clonar el repositorio en la computadora.
+  2. Abrir el proyecto en Visual Studio (de preferencia el 2022).
+
+![image](https://user-images.githubusercontent.com/80078826/236981566-feca8f1a-d1b3-48cf-a26e-95510eb57d7a.png)
+
+  3. Ejecutar el proyecto desde Visual Studio. 
+  4. Una vez cargue el navegador con Swagger, hacer click en el endpoint POST (el único disponible) y luego en `Try It Out` 
+
+![image](https://user-images.githubusercontent.com/80078826/236981770-9aa94fa1-1f47-486e-adbb-725cfc328818.png)
+
+  5. Poner en el request el Id de vuelo a consultar y hacer clic en `Execute`.
+
+![image](https://user-images.githubusercontent.com/80078826/236981979-82dfa1df-0241-43df-8043-d2fd87c66fe3.png)
+
+  6. Observar la respuesta en formato .json.
+
+![image](https://user-images.githubusercontent.com/80078826/236982038-2eea4b08-838e-4205-914f-6a5ed93dc29f.png)
+
+La segunda manera es a través del proyecto subido a Azure. Los pasos a seguir son los siguientes:
+
+1. Descargar Postman de: https://www.postman.com/downloads/
+2. Hacer clic en `New` y luego `HTTP Request` en el modal que aparece.
+
+![image](https://user-images.githubusercontent.com/80078826/236980647-7ee41631-cdf5-4e8e-9d74-aa0a02cf9ce6.png)
+![image](https://user-images.githubusercontent.com/80078826/236980694-66ec8dba-570d-48b6-9015-3472530edc2d.png)
+
+
+3. En la barra de URL, seleccionar el método POST, seleccionar el tipo de salida como JSON y colocar el URL: https://simairlineapi.azurewebsites.net/api/AirlineSim
+
+![image](https://user-images.githubusercontent.com/80078826/236980828-7656c926-a9c0-4886-8935-d1a9d817c284.png)
+
+4. Ir a la pestaña `Body` y colocar:
+    {
+        "id" : 
+    }
+    
+    ![image](https://user-images.githubusercontent.com/80078826/236981005-987c4de4-43b3-423c-b560-888a6aba7977.png)
+
+5. Después de los dos puntos, colocar el Id del vuelo a consultar y luego hacer clic en SEND.
+6. Observar la respuesta en formato .json.
+
+![image](https://user-images.githubusercontent.com/80078826/236981045-f7d99c88-6adf-40b8-ae4c-b03af30d6283.png)
+
+En caso Postman no lo tenga ya configurado, en la barra de botones superiores del visualizador de responses, modificar y colocar JSON en el botón del
+extremo derecho.
+
+![image](https://user-images.githubusercontent.com/80078826/236981247-f2f98afb-55c6-484e-b292-aab9a9865a78.png)
+
   
   
