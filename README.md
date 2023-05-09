@@ -289,7 +289,7 @@ De esta manera, se ha convertido satisfactoriamente los nombres de Snake Case a 
 
 ![image](https://user-images.githubusercontent.com/80078826/236982038-2eea4b08-838e-4205-914f-6a5ed93dc29f.png)
 
-La segunda manera es a través del proyecto subido a Azure. Los pasos a seguir son los siguientes:
+La segunda manera es a través del proyecto subido a Azure. Si se ingresa al URL del proyecto directamente desde el navegador, este arrojará un error 404. Sin embargo, el proyecto está disponible para testeo siguiendo los pasos a continuación:
 
 1. Descargar Postman de: https://www.postman.com/downloads/
 2. Hacer clic en `New` y luego `HTTP Request` en el modal que aparece.
